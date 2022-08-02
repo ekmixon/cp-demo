@@ -87,21 +87,22 @@ def setup(app):
         tokens = text.split('|')
         # add link prefix per link macro
         if role == 'platform':
-            linkPrefix = '/platform/' + platform_release + '/'
+            linkPrefix = f'/platform/{platform_release}/'
         if role == 'ccloud-cli':
-            linkPrefix = '/ccloud-cli/' + ccloud_cli_release + '/'
+            linkPrefix = f'/ccloud-cli/{ccloud_cli_release}/'
         if role == 'connect-common':
             linkPrefix = '/connect/'
         if role == 'cloud':
-            linkPrefix = '/cloud/' + cloud_release + '/'
+            linkPrefix = f'/cloud/{cloud_release}/'
         if role == 'confluent-cli':
-            linkPrefix = '/confluent-cli/' + confluent_cli_release + '/'
+            linkPrefix = f'/confluent-cli/{confluent_cli_release}/'
         if role == 'kafka-javadoc':
-            linkPrefix = 'https://kafka.apache.org/' + kafka_javadoc_version + '/javadoc/'
+            linkPrefix = f'https://kafka.apache.org/{kafka_javadoc_version}/javadoc/'
         if role == 'kafka-file':
-            linkPrefix = 'https://github.com/apache/kafka/blob/' + kafka_branch + '/'
+            linkPrefix = f'https://github.com/apache/kafka/blob/{kafka_branch}/'
         if role == 'gitpod_link':
-            linkPrefix = 'https://gitpod.io/#https://github.com/confluentinc/cp-demo/tree/' + release + '-post'
+            linkPrefix = f'https://gitpod.io/#https://github.com/confluentinc/cp-demo/tree/{release}-post'
+
         elif role == 'ccloud-cta':
             linkPrefix = 'https://www.confluent.io/confluent-cloud/'
         linktext = tokens[0]
@@ -112,6 +113,7 @@ def setup(app):
             linktext = ref
         node = nodes.reference(rawtext, utils.unescape(linktext), refuri=ref, **options)
         return [node], []
+
     # add link macros
     app.add_role('confluent-cli', makeLink)
     app.add_role('cloud', makeLink)
@@ -134,7 +136,7 @@ def setup(app):
 
     # Add the custom config values we want in the Sphinx config for substitutions
     for config_name in custom_config_names:
-        app.add_config_value(config_name, '<set ' + config_name + '>', '')
+        app.add_config_value(config_name, f'<set {config_name}>', '')
 
 
 # Even if it has a default, these options need to be specified
@@ -179,7 +181,7 @@ kafka_release = '7.0.0-ccs'
 # Scala version used for CP packages
 scala_version = '2.13'
 # release post branch, used in ksqlDB, streams, examples
-release_post_branch = release + '-post'
+release_post_branch = f'{release}-post'
 # CP preview release
 preview = '5.4-preview'
 # Version of ksqlDB, currently used for linking into ksqldb.io docs
@@ -286,15 +288,8 @@ exclude_patterns = ['_build', '**/includes', 'includes', 'images/source', '.hidd
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
-
-# If true, keep warnings as "system message" paragraphs in the built documents.
-#keep_warnings = False
-
-# Reused terms/content
-
-rst_prolog = """
+rst_prolog = (
+    """
 .. |ak-tm| replace:: Apache Kafka®
 .. |ak| replace:: Kafka
 .. |ansible| replace:: Ansible Playbooks for Confluent Platform
@@ -379,10 +374,13 @@ rst_prolog = """
 .. |zk-full| replace:: Apache ZooKeeper™
 .. |zk| replace:: ZooKeeper
 """
-
-rst_prolog += '\n'.join([
-    ".. |" + config_name + "| replace:: " + globals()[config_name] for config_name in custom_config_names
-    ])
+    + '\n'.join(
+        [
+            f".. |{config_name}| replace:: {globals()[config_name]}"
+            for config_name in custom_config_names
+        ]
+    )
+)
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -596,7 +594,10 @@ def create_redirects(app, exception):
             with open(src_abs, 'r') as fp:
                 contents = fp.read()
             if contents != redirect_contents:
-                raise RuntimeError("Source file for redirect already exists and has different contents: {}".format(src_abs))
+                raise RuntimeError(
+                    f"Source file for redirect already exists and has different contents: {src_abs}"
+                )
+
             continue
 
         src_dir = os.path.dirname(src_abs)
@@ -609,7 +610,7 @@ def create_redirects(app, exception):
         # directories that don't exist until the source file is created
         dest_abs = os.path.join(os.path.dirname(src_abs), dest)
         if not is_absolute and not os.path.isfile(dest_abs):
-            raise RuntimeError("Target redirect path does not exist: {}".format(dest_abs))
+            raise RuntimeError(f"Target redirect path does not exist: {dest_abs}")
 
 import requests
 url = 'https://web-wp.confluent.io/wp-admin/admin-ajax.php?action=get_confluent_navigation'
